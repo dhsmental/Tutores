@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Tutores e Alunos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-slate-50 min-h-screen font-sans text-slate-800">
+
+    <!-- Header -->
+    <header class="bg-indigo-700 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold flex items-center gap-2">
+                    <i data-lucide="layout-dashboard" class="w-7 h-7"></i> Tutores e Alunos do Curso de Direitos Humanos e Saúde Mental 
+                </h1>
+                <p class="text-indigo-200 text-sm mt-1">Acompanhamento e distribuição real de alunos por tutor até o dia 04/09/2026</p>
+            </div>
+            
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-8 space-y-6">
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
+                <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg">
+                    <i data-lucide="users" class="w-8 h-8"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-slate-500">Total de Tutores</p>
+                    <h3 class="text-2xl font-bold text-slate-900">70</h3>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
+                <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
+                    <i data-lucide="graduation-cap" class="w-8 h-8"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-slate-500">Total Geral de Alunos</p>
+                    <h3 class="text-2xl font-bold text-slate-900" id="totalAlunos">2.132</h3>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
+                <div class="p-3 bg-amber-50 text-amber-600 rounded-lg">
+                    <i data-lucide="bar-chart-3" class="w-8 h-8"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-slate-500">Média de Alunos por Tutor</p>
+                    <h3 class="text-2xl font-bold text-slate-900">30.5</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart Section (Entre Informações e Pesquisa) -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <i data-lucide="bar-chart-2" class="w-5 h-5 text-indigo-600"></i> Distribuição de Alunos por Tutor (Cores Únicas)
+                </h2>
+                <span class="text-xs text-slate-400">Visão Geral dos 70 Tutores</span>
+            </div>
+            <div class="relative w-full h-80">
+                <canvas id="tutorsChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Filters & Table Section -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            
+            <!-- Toolbar -->
+            <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div class="relative w-full sm:w-96">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                        <i data-lucide="search" class="w-4 h-4"></i>
+                    </span>
+                    <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Pesquisar tutor por nome..." 
+                        class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div class="text-sm text-slate-500" id="tableCount">
+                    Mostrando 70 de 70 tutores
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse" id="tutorsTable">
+                    <thead>
+                        <tr class="bg-slate-100 text-slate-700 text-xs uppercase tracking-wider font-semibold">
+                            <th class="py-3 px-6">#</th>
+                            <th class="py-3 px-6">Nome do Tutor</th>
+                            <th class="py-3 px-6 text-center">Quantidade de Alunos</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 text-sm text-slate-700">
+                        <!-- Data rows inserted dynamically via JS -->
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Script to populate data, render chart with 70 distinct colors and handle search -->
+    <script>
+        const tutorsData = [
+            { id: 1, name: "ADRIANA FELIX RODRIGUES", alunos: 34 },
+            { id: 2, name: "ALINE DUARTE DA SILVA", alunos: 28 },
+            { id: 3, name: "ALINE ZELLER BRANCHI", alunos: 28 },
+            { id: 4, name: "ANDREA CRISTINA BORGES DE SOUSA", alunos: 26 },
+            { id: 5, name: "ANDRESSA SILVEIRA MORAES", alunos: 31 },
+            { id: 6, name: "ANGELA PATRICIA RODRIGUES DA SILVA", alunos: 38 },
+            { id: 7, name: "BRUNA LIMA DA SILVA", alunos: 34 },
+            { id: 8, name: "CAMILA GONCALVES VIEIRA", alunos: 32 },
+            { id: 9, name: "CAROLINE DE BRITO LIMA LIRA", alunos: 31 },
+            { id: 10, name: "CAROLINE DE PAULA BATISTA", alunos: 27 },
+            { id: 11, name: "CASSIA VALERIA TAVARES DE SOUZA MARQUES", alunos: 29 },
+            { id: 12, name: "CASSIO ANDRADE MACHADO", alunos: 33 },
+            { id: 13, name: "CLAUDIA ROSANE COUTO SANTANNA ALMEIDA", alunos: 20 },
+            { id: 14, name: "CLEBERSON VIEIRA DE ARAUJO", alunos: 30 },
+            { id: 15, name: "CLEITON DOUGLAS BARROS SANTOS", alunos: 29 },
+            { id: 16, name: "CRIS DANIELA OLIVEIRA MACEDO", alunos: 48 },
+            { id: 17, name: "DANIELE CRISTINA BARBOSA DE SOUSA", alunos: 34 },
+            { id: 18, name: "DANIELLY MABEL FORMIGA LEITE DE ALMEIDA", alunos: 30 },
+            { id: 19, name: "DEBORA MARIA BARBERIS DE SOUSA", alunos: 36 },
+            { id: 20, name: "DOUGLAS HENRIQUE DE OLIVEIRA BRAZ", alunos: 24 },
+            { id: 21, name: "EDILZA SILVA MARTINS", alunos: 28 },
+            { id: 22, name: "EDSON SANTOS DE LIMA", alunos: 31 },
+            { id: 23, name: "EDUARDO JORGES PUGLIESI", alunos: 31 },
+            { id: 24, name: "ELIZABETH LIRA SILVA", alunos: 31 },
+            { id: 25, name: "EMMYLY NAYANE BARBOSA DE OLIVEIRA", alunos: 35 },
+            { id: 26, name: "EMYGDIO FLORIANO DINIZ VIEIRA", alunos: 35 },
+            { id: 27, name: "ERIKA NIELLY DE SOUSA BRITO", alunos: 28 },
+            { id: 28, name: "ESLANIA MARTINS LOPES", alunos: 29 },
+            { id: 29, name: "EUGENIO PACELLI NUNES PAULO JUNIOR", alunos: 29 },
+            { id: 30, name: "FATIMA DE LURDES BARCELLOS DA ROSA", alunos: 30 },
+            { id: 31, name: "FERNANDA LIMA SEVERO", alunos: 30 },
+            { id: 32, name: "FRANCILEIDE DOS SANTOS COSTA", alunos: 24 },
+            { id: 33, name: "FRANCIMARA PEREIRA DA SILVA", alunos: 28 },
+            { id: 34, name: "GABRIELLA DE OLIVEIRA RANGEL", alunos: 31 },
+            { id: 35, name: "GEILTON FERREIRA DE MELO", alunos: 34 },
+            { id: 36, name: "GIORDANA RODRIGUES CHAVES", alunos: 30 },
+            { id: 37, name: "HELDER PABLO JUSTINO DE LIMA", alunos: 32 },
+            { id: 38, name: "IAMARA DA SILVA POLICARPO BRITO", alunos: 31 },
+            { id: 39, name: "IRENE DE ALMEIDA BRAZ", alunos: 42 },
+            { id: 40, name: "ITALO RUAN TAVARES SAMPAIO", alunos: 30 },
+            { id: 41, name: "JANAINA DANTAS DOS SANTOS", alunos: 31 },
+            { id: 42, name: "JANICE DE MELO MACHADO", alunos: 32 },
+            { id: 43, name: "JOSELITA ALVES DA SILVA", alunos: 24 },
+            { id: 44, name: "JOSIELHE GONCALVES SOARES", alunos: 32 },
+            { id: 45, name: "JOSIVAL AVELINO DOS SANTOS JUNIOR", alunos: 26 },
+            { id: 46, name: "JULIANE REIS MAIA DA SILVA", alunos: 32 },
+            { id: 47, name: "KILMA CRISTEANE FERREIRA GUEDES", alunos: 29 },
+            { id: 48, name: "LETICIA RAMIRES CORREA", alunos: 22 },
+            { id: 49, name: "LIDIANE DA ROSA THOMAZ", alunos: 29 },
+            { id: 50, name: "LISYARA LAYSE GIRIBON DE CASTRO DA ROSA", alunos: 26 },
+            { id: 51, name: "LIZIANE DE AVILA OLIVEIRA", alunos: 27 },
+            { id: 52, name: "LUCIA RODRIGUES NEVES", alunos: 32 },
+            { id: 53, name: "LUIZA VIEIRA DA COSTA", alunos: 25 },
+            { id: 54, name: "MARIA ELOIZA CASTRO THOMAZ", alunos: 34 },
+            { id: 55, name: "MARIANA CAETANO ALCANTARA", alunos: 29 },
+            { id: 56, name: "MARILENE MARIA CAMPOS BASTOS RODRIGUES", alunos: 30 },
+            { id: 57, name: "NATALIA ESTELA ARAUJO BRANDAO", alunos: 35 },
+            { id: 58, name: "NATALIA MARIA DA SILVA SANTOS", alunos: 27 },
+            { id: 59, name: "NATAN EVANGELISTA DA SILVA", alunos: 31 },
+            { id: 60, name: "NAYARA CRISTINA DA SILVA CORDEIRO", alunos: 36 },
+            { id: 61, name: "PATRICIA FERNANDES CAVALHEIRO", alunos: 27 },
+            { id: 62, name: "PEDRO EULA MARQUES", alunos: 30 },
+            { id: 63, name: "RAVENA PEREIRA LEITE", alunos: 27 },
+            { id: 64, name: "RENATA MENEZES DE JESUS", alunos: 37 },
+            { id: 65, name: "RODRIGO SOARES DIAS", alunos: 34 },
+            { id: 66, name: "ROSANE SOARES DE OLIVEIRA", alunos: 28 },
+            { id: 67, name: "SILVIA ROZANE DE SOUZA AVILA DE SOUZA", alunos: 28 },
+            { id: 68, name: "TEYVIANNE RIBEIRO DE OLIVEIRA", alunos: 24 },
+            { id: 69, name: "VALERIA PEREIRA DA SILVA", alunos: 31 },
+            { id: 70, name: "YGOR SARKIS CARLEIAL TEIXEIRA", alunos: 36 }
+        ];
+
+        function renderTable(data) {
+            const tbody = document.querySelector("#tutorsTable tbody");
+            tbody.innerHTML = "";
+            
+            data.forEach((item, index) => {
+                const tr = document.createElement("tr");
+                tr.className = "hover:bg-slate-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="py-3 px-6 text-slate-400 font-mono text-xs">${item.id}</td>
+                    <td class="py-3 px-6 font-medium text-slate-800">${item.name}</td>
+                    <td class="py-3 px-6 text-center">
+                        <span class="inline-block bg-indigo-50 text-indigo-700 font-semibold px-2.5 py-1 rounded-full text-xs">
+                            ${item.alunos} alunos
+                        </span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById("tableCount").innerText = `Mostrando ${data.length} de ${tutorsData.length} tutores`;
+        }
+
+        function filterTable() {
+            const query = document.getElementById("searchInput").value.toLowerCase();
+            const filtered = tutorsData.filter(t => t.name.toLowerCase().includes(query));
+            renderTable(filtered);
+        }
+
+        // Generate 70 distinct colors using golden angle distribution
+        function generateDistinctColors(n) {
+            const colors = [];
+            for (let i = 0; i < n; i++) {
+                const hue = (i * 137.5) % 360;
+                colors.push(`hsl(${hue}, 70%, 55%)`);
+            }
+            return colors;
+        }
+
+        // Initialize Chart.js with 70 unique bar colors
+        function initChart() {
+            const ctx = document.getElementById('tutorsChart').getContext('2d');
+            const barColors = generateDistinctColors(tutorsData.length);
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: tutorsData.map(t => t.name),
+                    datasets: [{
+                        label: 'Quantidade de Alunos',
+                        data: tutorsData.map(t => t.alunos),
+                        backgroundColor: barColors,
+                        borderRadius: 4,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { 
+                                font: { size: 9 },
+                                maxRotation: 90,
+                                minRotation: 90
+                            },
+                            grid: { display: false }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            max: 55,
+                            ticks: { stepSize: 5 }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize Lucide icons, Chart and table on load
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            renderTable(tutorsData);
+            initChart();
+        });
+    </script>
+</body>
+</html>
