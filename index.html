@@ -658,8 +658,18 @@
                             </div>
                         </div>
                     </td>
-                    <td class="py-3 px-6 text-center font-semibold text-slate-700">${tutor.alunos}</td>
-                    <td class="py-3 px-6 text-center font-semibold text-emerald-600">${qtdLista}</td>
+                    <td class="py-3 px-6 text-center font-semibold text-slate-700">
+                        <span class="inline-flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-indigo-600 inline-block"></span>
+                            ${tutor.alunos}
+                        </span>
+                    </td>
+                    <td class="py-3 px-6 text-center font-semibold text-emerald-600">
+                        <span class="inline-flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
+                            ${qtdLista}
+                        </span>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });
